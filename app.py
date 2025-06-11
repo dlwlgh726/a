@@ -54,7 +54,7 @@ input_rate = st.slider("📉 기준금리 (%)", min_value=0.0, max_value=10.0, v
 predicted_price = model.predict(np.array([[input_rate]]))[0]
 
 # 결과 출력
-st.metric("📊 예상 평균 아파트 가격", f"{predicted_price:,.0f} 만원")
+st.metric("📊 예상 평균 아파트 가격", f"{predicted_price:,.0f} 백만원")
 
 # 차트 표시
 import matplotlib.pyplot as plt
