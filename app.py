@@ -15,11 +15,18 @@ st.title("🏡 금리와 아파트 매매가격의 관계 분석 (2006~2024)")
 apt_file = st.file_uploader("📁 아파트 매매 실거래 평균가격 CSV 업로드", type="csv")
 rate_file = st.file_uploader("📁 한국은행 금리 CSV 업로드", type="csv")
 
+# 파일 로딩 함수 (인코딩 자동)
+def load_csv(file):
+    try:
+        return pd.read_csv(file, encoding="utf-8-sig")
+    except UnicodeDecodeError:
+        return pd.read_csv(file, encoding="cp949")
+
 if apt_file and rate_file:
     try:
         # CSV 불러오기
-        apt_df = pd.read_csv(apt_file, encoding="cp949")
-        rate_df = pd.read_csv(rate_file, encoding="cp949")
+        apt_df = load_csv(apt_file)
+        rate_df = load_csv(rate_file)
 
         # 날짜 컬럼 정리
         apt_df = apt_df.rename(columns={apt_df.columns[0]: "날짜"})
