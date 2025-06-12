@@ -6,18 +6,30 @@ import seaborn as sns
 from sklearn.linear_model import LinearRegression
 import platform
 import matplotlib.font_manager as fm
+import os
 
-# ------------------------
-# 🔤 한글 폰트 설정 (운영체제별)
-# ------------------------
-if platform.system() == 'Darwin':  # macOS
-    plt.rcParams['font.family'] = 'AppleGothic'
-elif platform.system() == 'Windows':
-    plt.rcParams['font.family'] = 'Malgun Gothic'
-else:  # Linux (ex. Streamlit Cloud)
-    plt.rcParams['font.family'] = 'NanumGothic'
+# -----------------------------
+# 🔤 한글 폰트 설정 함수
+# -----------------------------
+def set_korean_font():
+    system = platform.system()
+    if system == 'Darwin':  # macOS
+        plt.rcParams['font.family'] = 'AppleGothic'
+    elif system == 'Windows':  # Windows
+        plt.rcParams['font.family'] = 'Malgun Gothic'
+    else:  # Linux or Streamlit Cloud
+        # NanumGothic 설치
+        font_path = '/tmp/NanumGothic.ttf'
+        if not os.path.exists(font_path):
+            import urllib.request
+            url = 'https://github.com/naver/nanumfont/blob/master/ttf/NanumGothic.ttf?raw=true'
+            urllib.request.urlretrieve(url, font_path)
+        fm.fontManager.addfont(font_path)
+        plt.rcParams['font.family'] = fm.FontProperties(fname=font_path).get_name()
+    plt.rcParams['axes.unicode_minus'] = False
 
-plt.rcParams['axes.unicode_minus'] = False  # 음수 깨짐 방지
+# 한글 폰트 설정 적용
+set_korean_font()
 
 # ------------------------
 # 1. 페이지 설정
@@ -30,21 +42,18 @@ st.title("🏠 지역별 금리 기반 아파트 평균가격 예측기")
 # ------------------------
 @st.cache_data
 def load_data():
-    # 아파트 가격 데이터
     apt_df = pd.read_csv("아파트_매매_실거래_평균가격_20250611110831.csv", encoding="cp949")
     apt_df = apt_df.rename(columns={"행정구역별(2)": "지역"})
     apt_long = apt_df.melt(id_vars=["지역"], var_name="연도", value_name="평균가격")
     apt_long["연도"] = apt_long["연도"].astype(int)
     apt_long["평균가격"] = pd.to_numeric(apt_long["평균가격"], errors="coerce")
 
-    # 금리 데이터
     rate_df = pd.read_csv("한국은행 기준금리 및 여수신금리_05123930.csv", encoding="cp949")
     rate_df = rate_df[rate_df["계정항목"] == "한국은행 기준금리"].drop(columns=["계정항목"])
     rate_long = rate_df.melt(var_name="연도", value_name="기준금리")
     rate_long["연도"] = rate_long["연도"].astype(int)
     rate_long["기준금리"] = pd.to_numeric(rate_long["기준금리"], errors="coerce")
 
-    # 병합
     merged = pd.merge(apt_long, rate_long, on="연도", how="inner")
     return merged
 
@@ -70,7 +79,7 @@ if not region_data.empty:
     predicted_price = model.predict(np.array([[input_rate]]))[0]
 
     # ------------------------
-    # 5. 상관계수 계산 및 출력
+    # 5. 상관계수 출력
     # ------------------------
     corr = region_data["기준금리"].corr(region_data["평균가격"])
 
