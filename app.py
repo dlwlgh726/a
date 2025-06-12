@@ -8,17 +8,16 @@ import platform
 import matplotlib.font_manager as fm
 import os
 
-# -----------------------------
-# 🔤 한글 폰트 설정 함수
-# -----------------------------
+# ------------------------
+# 🔤 한글 폰트 설정 (운영체제별)
+# ------------------------
 def set_korean_font():
     system = platform.system()
-    if system == 'Darwin':  # macOS
+    if system == 'Darwin':
         plt.rcParams['font.family'] = 'AppleGothic'
-    elif system == 'Windows':  # Windows
+    elif system == 'Windows':
         plt.rcParams['font.family'] = 'Malgun Gothic'
-    else:  # Linux or Streamlit Cloud
-        # NanumGothic 설치
+    else:
         font_path = '/tmp/NanumGothic.ttf'
         if not os.path.exists(font_path):
             import urllib.request
@@ -28,14 +27,13 @@ def set_korean_font():
         plt.rcParams['font.family'] = fm.FontProperties(fname=font_path).get_name()
     plt.rcParams['axes.unicode_minus'] = False
 
-# 한글 폰트 설정 적용
 set_korean_font()
 
 # ------------------------
 # 1. 페이지 설정
 # ------------------------
 st.set_page_config(page_title="지역별 금리 기반 아파트 가격 예측기", layout="centered")
-st.title("🏠 지역별 금리 기반 아파트 평균가격 예측기")
+st.title("\U0001F3E0 지역별 금리 기반 아파트 평균가격 예측기")
 
 # ------------------------
 # 2. 데이터 로딩
@@ -63,8 +61,8 @@ data = load_data()
 # 3. 사용자 입력
 # ------------------------
 regions = sorted(data["지역"].unique())
-selected_region = st.selectbox("📍 지역을 선택하세요", regions)
-input_rate = st.slider("📉 기준금리 (%)", min_value=0.0, max_value=10.0, value=3.5, step=0.1)
+selected_region = st.selectbox("\U0001F4CD 지역을 선택하세요", regions)
+input_rate = st.slider("\U0001F4C9 기준금리 (%)", min_value=0.0, max_value=10.0, value=3.5, step=0.1)
 
 region_data = data[data["지역"] == selected_region].dropna()
 
@@ -79,13 +77,13 @@ if not region_data.empty:
     predicted_price = model.predict(np.array([[input_rate]]))[0]
 
     # ------------------------
-    # 5. 상관계수 출력
+    # 5. 상관계수 계산 및 출력
     # ------------------------
     corr = region_data["기준금리"].corr(region_data["평균가격"])
 
-    st.subheader(f"🔍 {selected_region} 지역 기준금리 {input_rate:.1f}%에 대한 예측")
-    st.metric("📊 예상 평균 아파트 가격", f"{predicted_price:,.0f} 백만원")
-    st.write(f"📈 기준금리와 아파트 가격 간의 상관계수: **{corr:.3f}**")
+    st.subheader(f"\U0001F50D {selected_region} 지역 기준금리 {input_rate:.1f}%에 대한 예측")
+    st.metric("\U0001F4CA 예상 평균 아파트 가격", f"{predicted_price:,.0f} 백만원")
+    st.write(f"\U0001F4C8 기준금리와 아파트 가격 간의 상관계수: **{corr:.3f}**")
 
     # ------------------------
     # 6. 시각화: 기준금리 vs 가격
@@ -97,6 +95,7 @@ if not region_data.empty:
     ax1.set_xlabel("기준금리 (%)")
     ax1.set_ylabel("평균 아파트 가격 (백만원)")
     ax1.legend()
+    fig1.tight_layout()
     st.pyplot(fig1)
 
     # ------------------------
