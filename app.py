@@ -4,17 +4,40 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
+import platform
+import matplotlib.font_manager as fm
+import os
 
+# ------------------------
+# 0. 한글 폰트 설정
+# ------------------------
+if platform.system() == 'Windows':
+    plt.rc('font', family='Malgun Gothic')
+elif platform.system() == 'Darwin':  # macOS
+    plt.rc('font', family='AppleGothic')
+else:
+    # 리눅스 기반 환경 (예: 우분투 서버)
+    font_path = '/usr/share/fonts/truetype/nanum/NanumGothic.ttf'
+    if os.path.exists(font_path):
+        font_name = fm.FontProperties(fname=font_path).get_name()
+        plt.rc('font', family=font_name)
+    else:
+        st.warning("❗ 시스템에 한글 폰트가 설치되어 있지 않아 그래프 제목이 깨질 수 있습니다.")
+
+plt.rcParams['axes.unicode_minus'] = False  # 마이너스 깨짐 방지
+
+# ------------------------
+# 1. Streamlit 설정 및 타이틀
+# ------------------------
 st.set_page_config(page_title="지역별 금리 기반 아파트 가격 예측기", layout="centered")
 st.title("🏠 지역별 금리 기반 아파트 평균가격 예측기")
 
 # ------------------------
-# 1. 데이터 로딩
+# 2. 데이터 로딩
 # ------------------------
-
 @st.cache_data
 def load_data():
-    # 지역별 아파트 가격
+    # 아파트 가격 데이터
     apt_df = pd.read_csv("아파트_매매_실거래_평균가격_20250611110831.csv", encoding="cp949")
     apt_df = apt_df.rename(columns={"행정구역별(2)": "지역"})
     apt_long = apt_df.melt(id_vars=["지역"], var_name="연도", value_name="평균가격")
@@ -28,14 +51,14 @@ def load_data():
     rate_long["연도"] = rate_long["연도"].astype(int)
     rate_long["기준금리"] = pd.to_numeric(rate_long["기준금리"], errors="coerce")
 
-    # 병합
+    # 데이터 병합
     merged = pd.merge(apt_long, rate_long, on="연도", how="inner")
     return merged
 
 data = load_data()
 
 # ------------------------
-# 2. 지역 선택 및 모델 학습
+# 3. 지역 선택 및 예측
 # ------------------------
 regions = sorted(data["지역"].unique())
 selected_region = st.selectbox("📍 지역을 선택하세요", regions)
@@ -43,15 +66,15 @@ input_rate = st.slider("📉 기준금리 (%)", min_value=0.0, max_value=10.0, v
 
 region_data = data[data["지역"] == selected_region].dropna()
 
-# 선형회귀 모델 학습
 X = region_data[["기준금리"]]
 y = region_data["평균가격"]
+
 model = LinearRegression()
 model.fit(X, y)
 predicted_price = model.predict(np.array([[input_rate]]))[0]
 
 # ------------------------
-# 3. 상관계수 계산 및 출력
+# 4. 상관계수 출력
 # ------------------------
 corr = region_data["기준금리"].corr(region_data["평균가격"])
 
@@ -60,7 +83,7 @@ st.metric("📊 예상 평균 아파트 가격", f"{predicted_price:,.0f} 백만
 st.write(f"📈 기준금리와 아파트 평균가격 간 상관계수: **{corr:.3f}**")
 
 # ------------------------
-# 4. 기준금리와 평균가격 산점도 및 회귀선 시각화
+# 5. 회귀 시각화
 # ------------------------
 fig, ax = plt.subplots()
 sns.regplot(x="기준금리", y="평균가격", data=region_data, ax=ax, scatter_kws={"s": 50})
@@ -72,7 +95,7 @@ ax.legend()
 st.pyplot(fig)
 
 # ------------------------
-# 5. 연도별 변화 추이 그래프
+# 6. 연도별 변화 추이
 # ------------------------
 fig2, ax1 = plt.subplots(figsize=(8, 4))
 
