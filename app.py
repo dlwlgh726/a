@@ -13,7 +13,6 @@ st.title("🏠 지역별 금리 기반 아파트 평균가격 예측기")
 # ------------------------
 
 @st.cache_data
-
 def load_data():
     # 지역별 아파트 가격
     apt_df = pd.read_csv("아파트_매매_실거래_평균가격_20250611110831.csv", encoding="cp949")
@@ -56,7 +55,15 @@ predicted_price = model.predict(np.array([[input_rate]]))[0]
 # 3. 결과 출력
 # ------------------------
 st.subheader(f"🔍 {selected_region} 지역 기준금리 {input_rate:.1f}%에 대한 예측")
-st.metric("📊 예상 평균 아파트 가격", f"{predicted_price:,.0f} 만원")
+
+# ✅ 가격 단위를 "백만원"으로 변환
+predicted_price_million = predicted_price / 100
+
+st.metric("📊 예상 평균 아파트 가격", f"{predicted_price_million:,.0f} 백만원")
+
+# ✅ 상관계수 추가
+correlation = region_data["기준금리"].corr(region_data["평균가격"])
+st.write(f"📈 기준금리와 아파트 가격 간의 **상관계수**: `{correlation:.3f}`")
 
 # ------------------------
 # 4. 시각화
@@ -65,5 +72,6 @@ fig, ax = plt.subplots()
 sns.regplot(x="기준금리", y="평균가격", data=region_data, ax=ax, scatter_kws={"s": 50})
 ax.scatter(input_rate, predicted_price, color="red", label="입력값", s=100)
 ax.set_title(f"[ {selected_region} ] 기준금리와 아파트 평균가격 관계")
+ax.set_ylabel("아파트 평균가격 (만원)")
 ax.legend()
 st.pyplot(fig)
