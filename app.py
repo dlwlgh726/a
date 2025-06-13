@@ -12,7 +12,7 @@ import matplotlib.font_manager as fm
 import os
 
 # ------------------------
-# 0. 한글 폰트 설정
+# 0. 한글 폰트 설정 (NanumGothic-Regular.ttf 사용)
 # ------------------------
 def set_korean_font():
     font_path = "NanumGothic-Regular.ttf"
@@ -63,12 +63,16 @@ input_rate = st.slider("📉 기준금리 (%)", min_value=0.0, max_value=10.0, v
 region_data = data[data["지역"] == selected_region].dropna()
 
 # ------------------------
-# 4. 모델 학습 및 예측
+# 4. 가중 선형 회귀 학습 및 예측
 # ------------------------
 X = region_data[["기준금리"]]
 y = region_data["평균가격"]
+
+# 연도 기반 가중치 부여 (최신 연도일수록 더 높은 가중치)
+weights = region_data["연도"] - region_data["연도"].min() + 1
+
 model = LinearRegression()
-model.fit(X, y)
+model.fit(X, y, sample_weight=weights)
 predicted_price = model.predict(np.array([[input_rate]]))[0]
 
 # ------------------------
@@ -93,7 +97,7 @@ ax.legend()
 st.pyplot(fig)
 
 # ------------------------
-# 7. 연도별 기준금리 + 아파트 가격 (2축 그래프)
+# 7. 연도별 아파트 가격 변화 그래프
 # ------------------------
 fig2, ax1 = plt.subplots(figsize=(8, 4))
 
@@ -111,15 +115,14 @@ ax2.tick_params(axis='y', labelcolor=color2)
 
 plt.title(f"[ {selected_region} ] 연도별 평균 아파트 가격 및 기준금리 변화 추이")
 fig2.tight_layout()
-st.pyplot(fig2)
+st.pyplot(fig2) 
 
 # ------------------------
-# 8. 연도별 아파트 가격 단독 그래프
+# 8. 연도별 가격 단독 그래프 추가
 # ------------------------
-fig3, ax3 = plt.subplots(figsize=(8, 4))
-ax3.plot(region_data["연도"], region_data["평균가격"], marker='o', color='green')
+fig3, ax3 = plt.subplots()
+ax3.plot(region_data["연도"], region_data["평균가격"], marker='o', linestyle='-', color='green')
 ax3.set_title(f"[ {selected_region} ] 연도별 평균 아파트 가격 추이")
 ax3.set_xlabel("연도")
 ax3.set_ylabel("평균 아파트 가격 (백만원)")
-ax3.grid(True)
 st.pyplot(fig3)
