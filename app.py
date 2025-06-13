@@ -12,7 +12,7 @@ import matplotlib.font_manager as fm
 import os
 
 # ------------------------
-# 0. 한글 폰트 설정 (NanumGothic-Regular.ttf 사용)
+# 0. 한글 폰트 설정
 # ------------------------
 def set_korean_font():
     font_path = "NanumGothic-Regular.ttf"
@@ -93,7 +93,7 @@ ax.legend()
 st.pyplot(fig)
 
 # ------------------------
-# 7. 연도별 변화 추이 그래프
+# 7. 연도별 기준금리 + 아파트 가격 (2축 그래프)
 # ------------------------
 fig2, ax1 = plt.subplots(figsize=(8, 4))
 
@@ -112,3 +112,14 @@ ax2.tick_params(axis='y', labelcolor=color2)
 plt.title(f"[ {selected_region} ] 연도별 평균 아파트 가격 및 기준금리 변화 추이")
 fig2.tight_layout()
 st.pyplot(fig2)
+
+# ------------------------
+# 8. 연도별 아파트 가격 단독 그래프
+# ------------------------
+fig3, ax3 = plt.subplots(figsize=(8, 4))
+ax3.plot(region_data["연도"], region_data["평균가격"], marker='o', color='green')
+ax3.set_title(f"[ {selected_region} ] 연도별 평균 아파트 가격 추이")
+ax3.set_xlabel("연도")
+ax3.set_ylabel("평균 아파트 가격 (백만원)")
+ax3.grid(True)
+st.pyplot(fig3)
