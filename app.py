@@ -59,9 +59,12 @@ input_rate = st.slider("📉 기준금리 (%)", min_value=0.0, max_value=10.0, v
 
 region_data = data[data["지역"] == selected_region].dropna()
 
-if not region_data.empty:
+# ✅ 최근 연도만 사용 (예: 2016년 이후)
+region_data = region_data[region_data["연도"] >= 2016]
+
+if not region_data.empty and len(region_data) >= 3:
     # ------------------------
-    # 4. 가중치 생성 (최근 연도일수록 더 높은 가중치 - 제곱 처리)
+    # 4. 가중치 생성 (최근 연도일수록 더 높은 가중치 - 제곱)
     # ------------------------
     region_data["weight"] = (region_data["연도"] - region_data["연도"].min() + 1) ** 2
     weights = region_data["weight"]
@@ -83,6 +86,7 @@ if not region_data.empty:
     st.subheader(f"🔍 {selected_region} 지역 기준금리 {input_rate:.1f}%에 대한 예측")
     st.metric("📊 예상 평균 아파트 가격", f"{predicted_price:,.0f} 백만원")
     st.write(f"📈 기준금리와 아파트 평균가격 간 상관계수: **{corr:.3f}**")
+    st.caption("※ 최근 2016년 이후 데이터만 학습에 사용되었습니다.")
 
     # ------------------------
     # 7. 산점도 + 회귀선 그래프
@@ -117,4 +121,4 @@ if not region_data.empty:
     st.pyplot(fig2)
 
 else:
-    st.warning("선택한 지역의 데이터가 부족하여 예측을 진행할 수 없습니다.")
+    st.warning("선택한 지역의 데이터가 부족하거나 최근 10년 데이터가 충분하지 않습니다.")
