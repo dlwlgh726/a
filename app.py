@@ -61,9 +61,9 @@ region_data = data[data["지역"] == selected_region].dropna()
 
 if not region_data.empty:
     # ------------------------
-    # 4. 가중치 생성 (최근 연도일수록 더 높은 가중치)
+    # 4. 가중치 생성 (최근 연도일수록 더 높은 가중치 - 제곱 처리)
     # ------------------------
-    region_data["weight"] = region_data["연도"] - region_data["연도"].min() + 1
+    region_data["weight"] = (region_data["연도"] - region_data["연도"].min() + 1) ** 2
     weights = region_data["weight"]
 
     # ------------------------
