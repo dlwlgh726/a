@@ -69,7 +69,7 @@ X = region_data[["기준금리"]]
 y = region_data["평균가격"]
 
 # 연도 기반 가중치 부여 (최신 연도일수록 더 높은 가중치)
-weights = region_data["연도"] - region_data["연도"].min() + 1
+weights = region_data["연도"] - region_data["연도"].min() + 3
 
 model = LinearRegression()
 model.fit(X, y, sample_weight=weights)
